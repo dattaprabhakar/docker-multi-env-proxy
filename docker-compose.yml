@@ -1,0 +1,65 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik-reverse-proxy
+    user: root
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "5050:80"     # Main proxy endpoint (http://localhost:5050/dev & /sit)
+      - "8080:8080"   # Traefik dashboard (http://localhost:8080)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - dev-network
+      - sit-network
+    restart: unless-stopped
+
+  dev-service:
+    build:
+      context: ./dev
+      dockerfile: Dockerfile
+    container_name: dev-service
+    expose:
+      - "3000"
+    networks:
+      - dev-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dev-network"
+      - "traefik.http.routers.dev-router.rule=PathPrefix(`/dev`)"
+      - "traefik.http.routers.dev-router.entrypoints=web"
+      - "traefik.http.middlewares.dev-stripprefix.stripprefix.prefixes=/dev"
+      - "traefik.http.routers.dev-router.middlewares=dev-stripprefix"
+      - "traefik.http.services.dev-service.loadbalancer.server.port=3000"
+    restart: unless-stopped
+
+  sit-service:
+    build:
+      context: ./sit
+      dockerfile: Dockerfile
+    container_name: sit-service
+    expose:
+      - "3000"
+    networks:
+      - sit-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=sit-network"
+      - "traefik.http.routers.sit-router.rule=PathPrefix(`/sit`)"
+      - "traefik.http.routers.sit-router.entrypoints=web"
+      - "traefik.http.middlewares.sit-stripprefix.stripprefix.prefixes=/sit"
+      - "traefik.http.routers.sit-router.middlewares=sit-stripprefix"
+      - "traefik.http.services.sit-service.loadbalancer.server.port=3000"
+    restart: unless-stopped
+
+networks:
+  dev-network:
+    name: dev-network
+    driver: bridge
+  sit-network:
+    name: sit-network
+    driver: bridge

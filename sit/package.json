@@ -1,0 +1,10 @@
+{
+  "name": "sit-service",
+  "version": "1.0.0",
+  "description": "SIT Environment Service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}

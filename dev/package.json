@@ -1,0 +1,10 @@
+{
+  "name": "dev-service",
+  "version": "1.0.0",
+  "description": "Dev Environment Service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
